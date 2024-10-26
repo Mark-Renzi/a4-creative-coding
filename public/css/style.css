@@ -38,6 +38,20 @@ canvas {
   height: 0;
 }
 
+.rainbowBox {
+  display:flex;
+  gap: 0.5em;
+}
+
+.select, select { 
+  width:100%;
+}
+
+#settingsDiv {
+  display: flex;
+  flex-direction: column;
+}
+
 ::-webkit-scrollbar {
     width: 0px;
     background: transparent;

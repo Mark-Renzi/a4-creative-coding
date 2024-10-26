@@ -12,6 +12,7 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"
     />
+    <script src="https://kit.fontawesome.com/9220fbe0a0.js" crossorigin="anonymous"></script>
     <canvas id="canvas"></canvas>
 
     <main>
@@ -32,8 +33,9 @@
             <div id="songsDiv" class="column box p-4 mx-1">
               <div class="label is-flex is-flex-direction-row">
                 <label class="label">Songs&nbsp</label>
-                <button id="pauseBtn" class="icon m-0">
-                  <span title="Play/Pause" style="filter: saturate(0%) brightness(50%)" class="icon pt-0 is-flex is-align-content-flex-start">|&nbsp|</span>
+                <button id="pauseBtn" class="icon m-0 p-2" style="cursor: pointer;">
+                  <!-- <span title="Play/Pause" style="filter: saturate(0%) brightness(50%)" class="icon pt-0 is-flex is-align-content-flex-start">|&nbsp|</span> -->
+                  <i class="fa-solid fa-pause fa-lg" style="color: #444;"></i>
                 </button>
                 <div class="break"></div>
                 <button title="Hide settings" id="closeBackup" class="delete" style="justify-self: end;"></button>
@@ -73,6 +75,10 @@
                     oninput="back(this.value)"
                     value="#000000"
                   />
+                  <div class="rainbowBox mx-3">
+                    <label class="aside" for="rainbow">Rainbow</label>
+                    <input id="rainbow" type="checkbox"></input>
+                  </div>
                 </div>
               </div>
               <label class="aside mt-3">Theme</label>
@@ -90,7 +96,7 @@
               </div>
             </div>
 
-            <div class="column box is-flex p-4 pb-0 mx-1 mb-0 is-flex-shrink-0">
+            <div class="column box is-flex p-4 pb-0 mx-1 is-flex-shrink-0">
               <div id="settingsDiv" class="m-0 p-0">
                 <div class="is-flex is-flex-direction-row">
                   <label class="label">Settings&nbsp</label>
@@ -193,9 +199,11 @@
     const pauseBtn = document.getElementById("pauseBtn"),
       volume = document.getElementById("volume"),
       HUD = document.getElementById("options"),
-      clickArea = document.getElementById("clickArea");
-      closeBtn = document.getElementById("closeBackup");
-      
+      clickArea = document.getElementById("clickArea"),
+      closeBtn = document.getElementById("closeBackup"),
+      rainbowToggle = document.getElementById("rainbow"),
+      backgroundColor = document.getElementById("backgroundColor"),
+      visColor = document.getElementById("visColor");
 
     var audioCtx;
     var audioElement;
@@ -226,6 +234,17 @@
         }
       }
       
+    });
+
+    rainbowToggle.addEventListener("click", function () {
+      backgroundColor.disabled = !backgroundColor.disabled;
+      visColor.disabled = !visColor.disabled;
+
+      const demoLights = visColor.disabled ?? false;
+
+      console.log(demoLights);
+      
+
     });
 
     document.body.addEventListener("click", function () {

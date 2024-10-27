@@ -1,4 +1,4 @@
-## Circular Modular Audio Visualizer
+## Modular Audio Visualizer Circle
 
 Mark Renzi
 https://a4-mark-renzi.glitch.me

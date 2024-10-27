@@ -12,6 +12,7 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"
     />
+    <script src="https://kit.fontawesome.com/9220fbe0a0.js" crossorigin="anonymous"></script>
     <canvas id="canvas"></canvas>
 
     <main>
@@ -32,8 +33,9 @@
             <div id="songsDiv" class="column box p-4 mx-1">
               <div class="label is-flex is-flex-direction-row">
                 <label class="label">Songs&nbsp</label>
-                <button id="pauseBtn" class="icon m-0">
-                  <span title="Play/Pause" style="filter: saturate(0%) brightness(50%)" class="icon pt-0 is-flex is-align-content-flex-start">|&nbsp|</span>
+                <button id="pauseBtn" class="icon m-0 p-2" style="cursor: pointer;">
+                  <!-- <span title="Play/Pause" style="filter: saturate(0%) brightness(50%)" class="icon pt-0 is-flex is-align-content-flex-start">|&nbsp|</span> -->
+                  <i class="fa-solid fa-pause fa-lg" style="color: #444;"></i>
                 </button>
                 <div class="break"></div>
                 <button title="Hide settings" id="closeBackup" class="delete" style="justify-self: end;"></button>
@@ -58,7 +60,7 @@
             >
               <div class="is-flex is-flex-direction-column">
                 <label class="label">Customize</label>
-                <div class="is-flex is-flex-direction-row">
+                <div class="rainbowBox is-flex is-flex-direction-row">
                   <input
                     id="visColor"
                     type="color"
@@ -73,32 +75,37 @@
                     oninput="back(this.value)"
                     value="#000000"
                   />
+                  <div class="rainbowBox">
+                    <label class="aside" for="rainbow">Rainbow</label>
+                    <input id="rainbow" type="checkbox"></input>
+                    <input id="rainbowSlider" type="range" value=0 max=1 step=0.2 oninput="setColorOffset(this.value)" onchange="setColorOffset(this.value)" disabled></input>
+                  </div>
                 </div>
               </div>
               <label class="aside mt-3">Theme</label>
               <div>
                 <div class="select">
                   <select onchange="changeTheme(this.selectedIndex);">
-                    <option>Smooth</option>
-                    <option>Hi-res, no smoothing</option>
-                    <option>Smooth outline</option>
-                    <option>Blobs</option>
-                    <option>Smoothed Blobs</option>
-                    <option>Stylized</option>
+                    <option>Circle smooth</option>
+                    <option>Circle sharp</option>
+                    <option>Circle outline smooth </option>
+                    <option>Blobby</option>
+                    <option>Blobby smooth</option>
+                    <option>Circle stylized smooth</option>
                   </select>
                 </div>
               </div>
             </div>
 
-            <div class="column box is-flex p-4 pb-0 mx-1 mb-0 is-flex-shrink-0">
+            <div class="column box is-flex p-4 pb-0 mx-1 is-flex-shrink-0">
               <div id="settingsDiv" class="m-0 p-0">
                 <div class="is-flex is-flex-direction-row">
                   <label class="label">Settings&nbsp</label>
                 </div>
                 <div class="is-flex is-flex-direction-row is-justify-content-end">
-                  <label class="aside">Volume&nbsp</label>
+                  <label class="aside sliderLabel">Volume&nbsp</label>
                   <input
-                    class=""
+                    class="wideRange"
                     type="range"
                     min="0"
                     max="1"
@@ -110,9 +117,9 @@
                   />
                 </div>
                 <div class="is-flex is-flex-direction-row is-justify-content-end">
-                  <label class="aside">Center&nbsp</label>
+                  <label class="aside sliderLabel">Center&nbsp</label>
                   <input
-                    class=""
+                    class="wideRange"
                     type="range"
                     min="-100"
                     max="-1"
@@ -124,9 +131,9 @@
                   />
                 </div>
                 <div class="is-flex is-flex-direction-row is-justify-content-end">
-                  <label class="aside">Amplitude&nbsp</label>
+                  <label class="aside sliderLabel">Amplitude&nbsp</label>
                   <input
-                    class=""
+                    class="wideRange"
                     type="range"
                     min="-2000"
                     max="-1"
@@ -138,9 +145,9 @@
                   />
                 </div>
                 <div class="is-flex is-flex-direction-row is-justify-content-end">
-                  <label class="aside">Hide ends&nbsp</label>
+                  <label class="aside sliderLabel">Hide ends&nbsp</label>
                   <input
-                    class=""
+                    class="wideRange"
                     type="range"
                     min="0"
                     max="35"
@@ -193,12 +200,26 @@
     const pauseBtn = document.getElementById("pauseBtn"),
       volume = document.getElementById("volume"),
       HUD = document.getElementById("options"),
-      clickArea = document.getElementById("clickArea");
-      closeBtn = document.getElementById("closeBackup");
-      
+      clickArea = document.getElementById("clickArea"),
+      closeBtn = document.getElementById("closeBackup"),
+      rainbowToggle = document.getElementById("rainbow"),
+      backgroundColor = document.getElementById("backgroundColor"),
+      visColor = document.getElementById("visColor"),
+      rainbowSlider = document.getElementById("rainbowSlider");
 
     var audioCtx;
     var audioElement;
+
+    let demoLights;
+    const demoLightBinCount = 1024; //10000 is ~30-40 seconds
+    let demoLightBuf = new Array(demoLightBinCount);
+    demoLightBuf.fill(0);
+    let demoLightBin = 0;
+    let frontVal = 123;
+    let backVal = 0;
+    let colorOffset = 0;
+    let rainbowVal = 0;
+
 
     //songs
     const songs = ["./assets/a.mp3", "./assets/b.mp3", "./assets/c.mp3"];
@@ -226,6 +247,29 @@
         }
       }
       
+    });
+
+    rainbowToggle.addEventListener("click", function () {
+      backgroundColor.disabled = !backgroundColor.disabled;
+
+      rainbowSlider.disabled = !rainbowSlider.disabled;
+
+      demoLights = backgroundColor.disabled ?? false;
+
+      if (!demoLights) {
+        visColor.disabled = false;
+        back(backgroundColor.value);
+        front(visColor.value);
+      } else {
+        if (colorOffset >= 0.05) {
+          visColor.disabled = true;
+        }
+        back(convertToColor(backVal));
+        if (colorOffset >= 0.05) {
+          console.log(backVal, colorOffset, backVal + colorOffset);
+          front(convertToColor(backVal + colorOffset));
+        }
+      }
     });
 
     document.body.addEventListener("click", function () {
@@ -362,7 +406,7 @@
       }
     };
     const vol = function (value) {
-      audioElement.volume = value;
+      audioElement.volume = parseFloat(value);
     };
     const center = function (value) {
       if (value == -100) {
@@ -382,6 +426,27 @@
     };
     const ends = function (value) {
       cutoff = value / 100;
+    };
+    const setColorOffset = function(value) {
+
+      colorOffset = parseFloat(value);
+
+      if (colorOffset >= 0.05) {
+        visColor.disabled = true;
+        front(convertToColor(backVal + colorOffset));
+      } else {
+        visColor.disabled = false;
+        front(visColor.value);
+      }
+    };
+    const convertToColor = function (value) {
+      const a = 127.5
+      const r = Math.floor(a * Math.cos(Math.PI * value) + a + 0.5);
+      const g = Math.floor(a * Math.cos(Math.PI * value - (2/3) * Math.PI) + a + 0.5);
+      const b = Math.floor(a * Math.cos(Math.PI * value - (4/3) * Math.PI) + a + 0.5);
+      // console.log(r, g, b);
+      // console.log(`#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`);
+      return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
     };
 
     var player;
@@ -418,9 +483,6 @@
       player.connect(audioCtx.destination);
       player.connect(analyser);
 
-      // make sure, for this example, that your audiofile is accesssible
-      // from your server's root directory... here we assume the file is
-      // in the ssame location as our index.html file
       audioElement.src = "./assets/a.mp3";
       audioElement.play();
 
@@ -442,12 +504,45 @@
             analyser.frequencyBinCount - cutoff * analyser.frequencyBinCount
           ),
         ];
-        // fill our canvas with a black box
-        // by doing this every frame we 'clear' the canvas
-        ctx.fillStyle = backColor;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         analyser.getByteFrequencyData(results);
+
+        if (demoLights) {
+          let curLevel = 0;
+          for (level of results) {
+            curLevel += level;
+          }
+          if (curLevel !== 0)
+            curLevel /= analyser.frequencyBinCount;
+          // console.log(curLevel);
+
+          const windowMax = Math.max(...demoLightBuf);
+
+          if (curLevel > 0.99 * windowMax) {
+            backVal = (backVal + 0.002) % 2;
+          }
+
+          if (curLevel > 0.95 * windowMax) {
+            backVal = (backVal + 0.001) % 2;
+            back(convertToColor(backVal));
+            if (colorOffset >= 0.05) {
+              front(convertToColor(backVal + colorOffset));
+            }
+          }
+
+
+          
+          demoLightBin = (demoLightBin + 1) % demoLightBinCount;
+          demoLightBuf[demoLightBin] = curLevel;
+
+          // console.log(Math.min(...demoLightBuf), Math.max(...demoLightBuf));
+          // console.log(demoLightBin);
+        }
+        
+
+        // 'clear' the canvas
+        ctx.fillStyle = backColor;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         //console.log(analyser.frequencyBinCount);
 

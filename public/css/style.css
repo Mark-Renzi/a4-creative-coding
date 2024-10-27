@@ -38,6 +38,38 @@ canvas {
   height: 0;
 }
 
+.rainbowBox {
+  display:flex;
+  gap: 0.5em;
+  width: 100%;
+}
+
+#rainbowSlider {
+  width: 100%;
+  display: flex;
+  flex-grow: 1;
+  margin: 0;
+}
+
+.select, select { 
+  width:100%;
+}
+
+.wideRange {
+  width: 100%
+}
+
+.sliderLabel {
+  min-width: 5em;
+  text-wrap: nowrap;
+}
+
+#settingsDiv {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
 ::-webkit-scrollbar {
     width: 0px;
     background: transparent;
